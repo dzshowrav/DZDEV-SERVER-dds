@@ -249,10 +249,10 @@ Hosts:
 ```
 
 Access each at:
-- `http://localhost:8080/`
-- `http://localhost:8082/`
-- `http://localhost:8083/`
-- `http://localhost:8084/`
+- `http://localhost:8080/` — `https://localhost:8443/`
+- `http://localhost:8082/` — `https://localhost:8444/`
+- `http://localhost:8083/` — `https://localhost:8445/`
+- `http://localhost:8084/` — `https://localhost:8446/`
 
 ## Change Document Root
 
