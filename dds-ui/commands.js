@@ -181,6 +181,7 @@ export async function doStatus() {
         if (h.port == APACHE_PORT) continue;
         if (h.name !== 'default') sslCount++;
         const sslPort = h.name === 'default' ? APACHE_SSL_PORT : 8443 + sslCount;
+        choices.push(new inquirer.Separator());
         choices.push({ name: `${chalk.hex('#5599ff')('○')}  ${chalk.bold(h.name)} HTTP  ${chalk.dim('http://localhost:' + h.port + '/')}`, value: 'host_' + h.port });
         choices.push({ name: `${chalk.hex('#aa66ff')('○')}  ${chalk.bold(h.name)} HTTPS ${chalk.dim('https://localhost:' + sslPort + '/')}`, value: 'host_ssl_' + sslPort });
       }
