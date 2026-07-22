@@ -5,7 +5,7 @@ import inquirer from 'inquirer';
 import { withSpinner } from './spinner.js';
 import { renderLogo, renderHeader } from './logo.js';
 import { getHosts, addHost, removeHost, editHost, setDefaultRoot, loadHosts, saveHosts } from './hosts.js';
-import { generateVhostConfig, getDefaultPort } from './vhost.js';
+import { generateVhostConfig, getDefaultPort, hasVhostInclude } from './vhost.js';
 
 const DDS_DIR = process.env.HOME + '/dds';
 const MYSQL_PID_FILE = '/data/data/com.termux/files/usr/var/run/mariadb.pid';
@@ -40,6 +40,8 @@ function apacheRunning() {
 
 export async function doStart(ssl = false) {
   execSync(`mkdir -p ${HTDOCS_DIR}`, { stdio: 'ignore' });
+
+  generateVhostConfig();
 
   await withSpinner('Starting Apache...', () => {
     if (apacheRunning()) return true;
