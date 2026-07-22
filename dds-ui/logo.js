@@ -65,24 +65,10 @@ export function renderLogo() {
   return { logo, tagline };
 }
 
-function terminalWidth(s) {
-  let w = 0;
-  for (const ch of s) {
-    const c = ch.charCodeAt(0);
-    if (c >= 0x2500 && c <= 0x259F) w += 2;
-    else if (c >= 0x2E80 && c <= 0x9FFF) w += 2;
-    else if (c >= 0xFF01 && c <= 0xFF60) w += 2;
-    else if (c >= 0xAC00 && c <= 0xD7AF) w += 2;
-    else if (c >= 0x1F000 && c <= 0x1FFFF) w += 2;
-    else w += 1;
-  }
-  return w;
-}
-
 export function centerPad(str, width) {
   const visible = str.replace(/\u001b\[[0-9;]*m/g, '');
   if (visible.length <= 0) return str;
-  const pad = Math.max(0, Math.floor((width - terminalWidth(visible)) / 2));
+  const pad = Math.max(0, Math.floor((width - visible.length) / 2));
   return ' '.repeat(pad) + str;
 }
 
