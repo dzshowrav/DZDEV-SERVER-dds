@@ -1,6 +1,7 @@
 import { execSync } from 'child_process';
 import { existsSync } from 'fs';
 import chalk from 'chalk';
+import inquirer from 'inquirer';
 import { withSpinner } from './spinner.js';
 import { renderHeader } from './logo.js';
 
@@ -80,41 +81,70 @@ export async function doStop() {
 }
 
 export async function doStatus() {
-  renderHeader('DDS Status');
-
   const apachePidList = apachePids();
   const mysqlPidVal = mysqlPid();
   const mysqlIsRunning = mysqlRunning();
-
-  const apacheStatus = apachePidList.length > 0
-    ? chalk.bold.green(`● RUNNING`) + chalk.dim(`  (${apachePidList.length} processes, port ${APACHE_PORT})`)
-    : chalk.bold.red(`● STOPPED`);
-
-  const mysqlStatus = mysqlIsRunning
-    ? chalk.bold.green(`● RUNNING`) + chalk.dim(`  (PID ${mysqlPidVal})`)
-    : chalk.bold.red(`● STOPPED`);
-
   const pmaInstalled = existsSync(`${HTDOCS_DIR}/phpmyadmin/index.php`);
-  const pmaStatus = pmaInstalled
-    ? chalk.bold.green(`● INSTALLED`) + chalk.dim(`  /phpmyadmin/`)
-    : chalk.bold.yellow(`● NOT INSTALLED`);
+  const apacheOnline = apachePidList.length > 0;
 
-  console.log(`  ${chalk.hex('#00d4aa')('▸')} Apache    ${apacheStatus}`);
-  console.log(`  ${chalk.hex('#00d4aa')('▸')} MariaDB   ${mysqlStatus}`);
-  console.log(`  ${chalk.hex('#00d4aa')('▸')} phpMyAdmin ${pmaStatus}`);
+  renderHeader('DDS Status');
 
-  const apacheSSL = apachePidList.length > 0
-    ? chalk.green('✓') + chalk.dim(` https://localhost:${APACHE_SSL_PORT}/`)
-    : chalk.red('✗');
+  let back = false;
+  while (!back) {
 
-  const pmaLink = pmaInstalled
-    ? chalk.green('✓') + chalk.dim(` http://localhost:${APACHE_PORT}/phpmyadmin/`)
-    : chalk.red('✗');
+    const apacheStatus = apacheOnline
+      ? chalk.bold.green('● RUNNING') + chalk.dim(`  (${apachePidList.length} processes, port ${APACHE_PORT})`)
+      : chalk.bold.red('● STOPPED');
 
-  console.log(`\n  ${chalk.dim('HTTP:')}  ${chalk.underline(`http://localhost:${APACHE_PORT}/`)}`);
-  console.log(`  ${chalk.dim('SSL:')}   ${apacheSSL}`);
-  console.log(`  ${chalk.dim('Root:')}  ${HTDOCS_DIR}`);
-  console.log(`  ${chalk.dim('DB:')}    ${pmaLink}\n`);
+    const mysqlStatus = mysqlIsRunning
+      ? chalk.bold.green('● RUNNING') + chalk.dim(`  (PID ${mysqlPidVal})`)
+      : chalk.bold.red('● STOPPED');
+
+    const pmaStatus = pmaInstalled
+      ? chalk.bold.green('● INSTALLED') + chalk.dim('  /phpmyadmin/')
+      : chalk.bold.yellow('● NOT INSTALLED');
+
+    console.log(`  ${chalk.hex('#00d4aa')('▸')} Apache    ${apacheStatus}`);
+    console.log(`  ${chalk.hex('#00d4aa')('▸')} MariaDB   ${mysqlStatus}`);
+    console.log(`  ${chalk.hex('#00d4aa')('▸')} phpMyAdmin ${pmaStatus}`);
+    console.log();
+
+    const choices = [];
+
+    if (apacheOnline) {
+      choices.push({ name: `${chalk.green('○')}  ${chalk.bold('Open HTTP')}      ${chalk.dim('http://localhost:' + APACHE_PORT + '/')}`, value: 'http' });
+      choices.push({ name: `${chalk.green('○')}  ${chalk.bold('Open HTTPS')}     ${chalk.dim('https://localhost:' + APACHE_SSL_PORT + '/')}`, value: 'https' });
+    }
+    if (pmaInstalled && apacheOnline) {
+      choices.push({ name: `${chalk.green('○')}  ${chalk.bold('Open phpMyAdmin')} ${chalk.dim('http://localhost:' + APACHE_PORT + '/phpmyadmin/')}`, value: 'pma' });
+    }
+    choices.push(new inquirer.Separator());
+    choices.push({ name: `${chalk.dim('←')}  ${chalk.bold('Back to Home')}`, value: 'back' });
+
+    const { action } = await inquirer.prompt([{
+      type: 'list',
+      name: 'action',
+      message: chalk.hex('#00d4aa')('Quick actions:'),
+      choices,
+      pageSize: 8,
+      loop: false,
+    }]);
+
+    switch (action) {
+      case 'http':
+        execSync(`termux-open-url "http://localhost:${APACHE_PORT}/"`, { stdio: 'ignore' });
+        break;
+      case 'https':
+        execSync(`termux-open-url "https://localhost:${APACHE_SSL_PORT}/"`, { stdio: 'ignore' });
+        break;
+      case 'pma':
+        execSync(`termux-open-url "http://localhost:${APACHE_PORT}/phpmyadmin/"`, { stdio: 'ignore' });
+        break;
+      case 'back':
+        back = true;
+        break;
+    }
+  }
 }
 
 export async function doRestart() {
