@@ -7,6 +7,15 @@ APACHE_SSL_PORT=8443
 HTDOCS_DIR="/sdcard/htdocs"
 PREFIX="/data/data/com.termux/files/usr"
 
+USE_UI=false
+if command -v node &>/dev/null && [ -f "$DDS_DIR/dds-ui/package.json" ]; then
+  USE_UI=true
+fi
+
+if $USE_UI; then
+  exec node "$DDS_DIR/dds-ui/index.js" "$@"
+fi
+
 die() {
   echo "ERROR: $*" >&2
   exit 1
