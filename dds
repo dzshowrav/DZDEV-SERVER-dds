@@ -146,6 +146,11 @@ status)
   else
     echo "  MariaDB    STOPPED"
   fi
+  if [ -f "$HTDOCS_DIR/phpmyadmin/index.php" ]; then
+    echo "  phpMyAdmin INSTALLED  (/phpmyadmin/)"
+  else
+    echo "  phpMyAdmin MISSING    (run setup again)"
+  fi
   echo ""
   echo "  Document root: $HTDOCS_DIR"
   echo "  HTTP:  http://localhost:$APACHE_PORT/"

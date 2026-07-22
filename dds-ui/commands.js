@@ -1,4 +1,5 @@
 import { execSync } from 'child_process';
+import { existsSync } from 'fs';
 import chalk from 'chalk';
 import { withSpinner } from './spinner.js';
 import { renderHeader } from './logo.js';
@@ -93,8 +94,14 @@ export async function doStatus() {
     ? chalk.bold.green(`● RUNNING`) + chalk.dim(`  (PID ${mysqlPidVal})`)
     : chalk.bold.red(`● STOPPED`);
 
-  console.log(`  ${chalk.hex('#00d4aa')('▸')} Apache  ${apacheStatus}`);
-  console.log(`  ${chalk.hex('#00d4aa')('▸')} MariaDB ${mysqlStatus}`);
+  const pmaInstalled = existsSync(`${HTDOCS_DIR}/phpmyadmin/index.php`);
+  const pmaStatus = pmaInstalled
+    ? chalk.bold.green(`● INSTALLED`) + chalk.dim(`  /phpmyadmin/`)
+    : chalk.bold.yellow(`● NOT INSTALLED`);
+
+  console.log(`  ${chalk.hex('#00d4aa')('▸')} Apache    ${apacheStatus}`);
+  console.log(`  ${chalk.hex('#00d4aa')('▸')} MariaDB   ${mysqlStatus}`);
+  console.log(`  ${chalk.hex('#00d4aa')('▸')} phpMyAdmin ${pmaStatus}`);
 
   const apacheSSL = apachePidList.length > 0
     ? chalk.green('✓') + chalk.dim(` https://localhost:${APACHE_SSL_PORT}/`)
