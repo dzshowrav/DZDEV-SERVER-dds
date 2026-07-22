@@ -68,6 +68,7 @@ cp dds $PREFIX/bin/
 if command -v node &>/dev/null && [ -f dds-ui/package.json ]; then
   echo "Setting up dds-ui visual interface..."
   (cd dds-ui && npm install --no-audit --no-fund)
+  node --input-type=module -e "import('$HOME/dds/dds-ui/vhost.js').then(m => m.generateVhostConfig())" 2>/dev/null || true
 fi
 
 pkg install mariadb composer -y
