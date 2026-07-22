@@ -152,11 +152,25 @@ export async function doStatus() {
     console.log(`  ${chalk.hex('#00d4aa')('▸')} phpMyAdmin ${pmaStatus}`);
     console.log();
 
+    const hosts = getHosts();
+    if (hosts.length > 0) {
+      console.log(chalk.dim('  ── Virtual Hosts ──'));
+      for (const h of hosts) {
+        const icon = apacheOnline ? chalk.green('●') : chalk.dim('○');
+        const root = h.root || '(none)';
+        console.log(`  ${icon} ${chalk.bold(h.name)} ${chalk.dim('→')} :${h.port} ${chalk.dim('[' + root + ']')}`);
+      }
+      console.log();
+    }
+
     const choices = [];
 
     if (apacheOnline) {
       choices.push({ name: `${chalk.green('○')}  ${chalk.bold('Open HTTP')}      ${chalk.dim('http://localhost:' + APACHE_PORT + '/')}`, value: 'http' });
       choices.push({ name: `${chalk.green('○')}  ${chalk.bold('Open HTTPS')}     ${chalk.dim('https://localhost:' + APACHE_SSL_PORT + '/')}`, value: 'https' });
+      for (const h of hosts) {
+        choices.push({ name: `${chalk.hex('#5599ff')('○')}  ${chalk.bold(h.name)}     ${chalk.dim('http://localhost:' + h.port + '/')}`, value: 'host_' + h.port });
+      }
     }
     if (pmaInstalled && apacheOnline) {
       choices.push({ name: `${chalk.green('○')}  ${chalk.bold('Open phpMyAdmin')} ${chalk.dim('http://localhost:' + APACHE_PORT + '/phpmyadmin/')}`, value: 'pma' });
@@ -169,7 +183,7 @@ export async function doStatus() {
       name: 'action',
       message: chalk.hex('#00d4aa')('Quick actions:'),
       choices,
-      pageSize: 8,
+      pageSize: Math.min(hosts.length + 6, 20),
       loop: false,
     }]);
 
@@ -182,6 +196,12 @@ export async function doStatus() {
         break;
       case 'pma':
         execSync(`termux-open-url "http://localhost:${APACHE_PORT}/phpmyadmin/"`, { stdio: 'ignore' });
+        break;
+      default:
+        if (action && action.startsWith('host_')) {
+          const port = action.slice(5);
+          execSync(`termux-open-url "http://localhost:${port}/"`, { stdio: 'ignore' });
+        }
         break;
       case 'back':
         back = true;
