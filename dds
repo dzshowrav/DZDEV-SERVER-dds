@@ -9,6 +9,10 @@ PREFIX="/data/data/com.termux/files/usr"
 
 USE_UI=false
 if command -v node &>/dev/null && [ -f "$DDS_DIR/dds-ui/package.json" ]; then
+  if [ ! -d "$DDS_DIR/dds-ui/node_modules" ]; then
+    echo "Installing dds-ui dependencies..." >&2
+    (cd "$DDS_DIR/dds-ui" && npm install --no-audit --no-fund) &>/dev/null
+  fi
   USE_UI=true
 fi
 

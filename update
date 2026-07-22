@@ -58,6 +58,11 @@ chmod +x dds
 
 cp dds $PREFIX/bin/
 
+if command -v node &>/dev/null && [ -f dds-ui/package.json ] && [ ! -d dds-ui/node_modules ]; then
+  echo "Setting up dds-ui visual interface..."
+  (cd dds-ui && npm install --no-audit --no-fund)
+fi
+
 cp -n .htaccess /sdcard/htdocs/
 
 cp -n config.inc.php /sdcard/htdocs/phpmyadmin/config.inc.php

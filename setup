@@ -65,6 +65,11 @@ chmod +x dds
 
 cp dds $PREFIX/bin/
 
+if command -v node &>/dev/null && [ -f dds-ui/package.json ]; then
+  echo "Setting up dds-ui visual interface..."
+  (cd dds-ui && npm install --no-audit --no-fund)
+fi
+
 pkg install mariadb composer -y
 
 mkdir -p /sdcard/htdocs
