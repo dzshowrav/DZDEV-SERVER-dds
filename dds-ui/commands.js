@@ -107,9 +107,14 @@ export async function doStatus() {
     ? chalk.green('✓') + chalk.dim(` https://localhost:${APACHE_SSL_PORT}/`)
     : chalk.red('✗');
 
+  const pmaLink = pmaInstalled
+    ? chalk.green('✓') + chalk.dim(` http://localhost:${APACHE_PORT}/phpmyadmin/`)
+    : chalk.red('✗');
+
   console.log(`\n  ${chalk.dim('HTTP:')}  ${chalk.underline(`http://localhost:${APACHE_PORT}/`)}`);
   console.log(`  ${chalk.dim('SSL:')}   ${apacheSSL}`);
-  console.log(`  ${chalk.dim('Root:')}  ${HTDOCS_DIR}\n`);
+  console.log(`  ${chalk.dim('Root:')}  ${HTDOCS_DIR}`);
+  console.log(`  ${chalk.dim('DB:')}    ${pmaLink}\n`);
 }
 
 export async function doRestart() {

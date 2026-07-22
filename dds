@@ -155,6 +155,7 @@ status)
   echo "  Document root: $HTDOCS_DIR"
   echo "  HTTP:  http://localhost:$APACHE_PORT/"
   echo "  HTTPS: https://localhost:$APACHE_SSL_PORT/"
+  echo "  DB:    http://localhost:$APACHE_PORT/phpmyadmin/"
   ;;
 update)
   if [ ! -d "$DDS_DIR" ]; then
