@@ -169,6 +169,7 @@ export async function doStatus() {
       choices.push({ name: `${chalk.green('○')}  ${chalk.bold('Open HTTP')}      ${chalk.dim('http://localhost:' + APACHE_PORT + '/')}`, value: 'http' });
       choices.push({ name: `${chalk.green('○')}  ${chalk.bold('Open HTTPS')}     ${chalk.dim('https://localhost:' + APACHE_SSL_PORT + '/')}`, value: 'https' });
       for (const h of hosts) {
+        if (h.port == APACHE_PORT) continue;
         choices.push({ name: `${chalk.hex('#5599ff')('○')}  ${chalk.bold(h.name)}     ${chalk.dim('http://localhost:' + h.port + '/')}`, value: 'host_' + h.port });
       }
     }
