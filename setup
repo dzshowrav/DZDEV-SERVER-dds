@@ -90,11 +90,6 @@ fi
 
 cd ~/dds && cp -f config.inc.php /sdcard/htdocs/phpmyadmin/config.inc.php
 
-# Generate blowfish_secret for phpMyAdmin
-PHP_PMA_CONFIG="/sdcard/htdocs/phpmyadmin/config.inc.php"
-BLOWFISH_SECRET=$(php -r "echo bin2hex(random_bytes(16));")
-sed -i "s/\\\$cfg\[.blowfish_secret.\].*/\\\$cfg['blowfish_secret'] = '$BLOWFISH_SECRET';/" "$PHP_PMA_CONFIG"
-
 # PHP security hardening
 PHP_INI="$PREFIX/etc/php/php.ini"
 if [ ! -f "$PHP_INI" ]; then
