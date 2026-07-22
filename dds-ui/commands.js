@@ -1,5 +1,7 @@
-import { execSync } from 'child_process';
-import { existsSync, mkdirSync, readdirSync, rmSync } from 'fs';
+import { execSync, exec } from 'child_process';
+import { promisify } from 'util';
+const execAsync = promisify(exec);
+import { existsSync, mkdirSync, readdirSync, rmSync, promises as fs } from 'fs';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { withSpinner } from './spinner.js';
@@ -273,20 +275,20 @@ export async function doUninstall() {
     return true;
   });
 
-  await withSpinner('Uninstalling packages...', () => {
-    execSync('apt purge apache2 php php-apache openssl-tool mariadb composer -y', { stdio: 'pipe' });
-    execSync('apt autoremove -y', { stdio: 'pipe' });
+  await withSpinner('Uninstalling packages...', async () => {
+    await execAsync('apt purge apache2 php php-apache openssl-tool mariadb composer -y');
+    await execAsync('apt autoremove -y');
     return true;
   });
 
-  await withSpinner('Cleaning up files...', () => {
-    rmSync(HTDOCS_DIR + '/phpmyadmin', { recursive: true, force: true });
-    rmSync(PREFIX + '/etc/apache2/httpd.conf', { force: true });
-    rmSync(PREFIX + '/etc/apache2/extra/httpd-ssl.conf', { force: true });
-    rmSync(PREFIX + '/etc/php/php.ini', { force: true });
-    rmSync(PREFIX + '/bin/dds', { force: true });
+  await withSpinner('Cleaning up files...', async () => {
+    await fs.rm(HTDOCS_DIR + '/phpmyadmin', { recursive: true, force: true });
+    await fs.rm(PREFIX + '/etc/apache2/httpd.conf', { force: true });
+    await fs.rm(PREFIX + '/etc/apache2/extra/httpd-ssl.conf', { force: true });
+    await fs.rm(PREFIX + '/etc/php/php.ini', { force: true });
+    await fs.rm(PREFIX + '/bin/dds', { force: true });
     try { process.chdir('/tmp'); } catch {}
-    rmSync(DDS_DIR, { recursive: true, force: true });
+    await fs.rm(DDS_DIR, { recursive: true, force: true });
     return true;
   });
 
