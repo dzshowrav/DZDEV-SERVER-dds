@@ -244,7 +244,8 @@ export function doUpdate() {
       execSync(`bash ${DDS_DIR}/update`, { stdio: 'inherit' });
       return true;
     });
-  console.log(chalk.green('  DDS updated successfully\n'));
+    console.log(chalk.green('  DDS updated successfully\n'));
+  }
 }
 
 export async function doUninstall() {
@@ -290,7 +291,6 @@ export async function doUninstall() {
 
   console.log(chalk.green('\n  DDS has been successfully uninstalled.\n'));
   process.exit(0);
-}
 }
 
 function reloadApache() {
