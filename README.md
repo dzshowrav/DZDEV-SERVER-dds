@@ -1,10 +1,10 @@
-# TAMP
+# DDS
 
-[![GitHub repo size](https://img.shields.io/github/repo-size/sekedus/tamp?label=Size)](https://github.com/sekedus/tamp) [![GitHub Clones](https://img.shields.io/badge/dynamic/json?color=success&label=Clone&query=count&url=https://gist.githubusercontent.com/sekedus/0f5fd62474258fa66560be80b6bf9904/raw/clone.json)](https://github.com/MShawon/github-clone-count-badge) [![GitHub License](https://img.shields.io/github/license/sekedus/tamp?label=License)](https://github.com/sekedus/tamp/blob/main/LICENSE)
+[![GitHub repo size](https://img.shields.io/github/repo-size/dzshowrav/DZDEV-SERVER-dds?label=Size)](https://github.com/dzshowrav/DZDEV-SERVER-dds) [![GitHub License](https://img.shields.io/github/license/dzshowrav/DZDEV-SERVER-dds?label=License)](https://github.com/dzshowrav/DZDEV-SERVER-dds/blob/main/LICENSE)
 
-TAMP (Termux, Apache, MariaDB, PHP)
+DDS (Termux, Apache, MariaDB, PHP)
 
-TAMP is a local http web server for Android using Termux, with installation packages: Apache, MySQL/MariaDB, PHP, phpMyAdmin, & Composer.
+DDS is a local http web server for Android using Termux, with installation packages: Apache, MySQL/MariaDB, PHP, phpMyAdmin, & Composer.
 
 ㅤ
 ## Requirements
@@ -26,11 +26,11 @@ termux-setup-storage
 ```
 4. Install `git` & clone this repo: 
 ```bash
-pkg install git -y && cd ~/ && git clone https://github.com/sekedus/tamp.git
+pkg install git -y && cd ~/ && git clone https://github.com/dzshowrav/DZDEV-SERVER-dds.git dds
 ```
-5. Install TAMP: 
+5. Install DDS: 
 ```bash
-cd ~/tamp && bash setup && cd ~/
+cd ~/dds && bash setup && cd ~/
 ```
 6. Wait until installation is complete.
 7. Enjoy!
@@ -38,9 +38,9 @@ cd ~/tamp && bash setup && cd ~/
 ㅤ
 ## Usage
 
-- Run `tamp start` to open url in browser.
+- Run `dds start` to open url in browser.
 - Local web server with SSL:
-  * run: `tamp start-ssl`
+  * run: `dds start-ssl`
   * port: `8443`
   * url: `https://localhost:8443`
 - Login phpMyAdmin:
@@ -54,11 +54,11 @@ cd ~/tamp && bash setup && cd ~/
 ㅤ
 ## Commands
 
-- tamp start
-- tamp start-ssl
-- tamp stop
-- tamp update
-- tamp uninstall
+- dds start
+- dds start-ssl
+- dds stop
+- dds update
+- dds uninstall
 
 ㅤ
 ## Credits
@@ -71,4 +71,4 @@ cd ~/tamp && bash setup && cd ~/
 ㅤ
 ## License
 
-TAMP is licensed under the GNU General Public License v3.0. See the [LICENSE](https://github.com/sekedus/tamp/blob/main/LICENSE) file for more details.
+DDS is licensed under the GNU General Public License v3.0. See the [LICENSE](https://github.com/dzshowrav/DZDEV-SERVER-dds/blob/main/LICENSE) file for more details.
