@@ -7,8 +7,10 @@ import { renderLogo, renderHeader } from './logo.js';
 import { getHosts, addHost, removeHost, editHost, setDefaultRoot, loadHosts, saveHosts } from './hosts.js';
 import { generateVhostConfig, getDefaultPort, hasVhostInclude } from './vhost.js';
 
-const DDS_DIR = process.env.HOME + '/dds';
-const MYSQL_PID_FILE = '/data/data/com.termux/files/usr/var/run/mariadb.pid';
+const HOME = process.env.HOME;
+const PREFIX = '/data/data/com.termux/files/usr';
+const DDS_DIR = HOME + '/dds';
+const MYSQL_PID_FILE = PREFIX + '/var/run/mariadb.pid';
 const APACHE_PORT = 8080;
 const APACHE_SSL_PORT = 8443;
 const HTDOCS_DIR = '/sdcard/htdocs';
@@ -242,8 +244,53 @@ export function doUpdate() {
       execSync(`bash ${DDS_DIR}/update`, { stdio: 'inherit' });
       return true;
     });
-    console.log(chalk.green('  DDS updated successfully\n'));
+  console.log(chalk.green('  DDS updated successfully\n'));
+}
+
+export async function doUninstall() {
+  const { confirm } = await inquirer.prompt([{
+    type: 'confirm',
+    name: 'confirm',
+    message: chalk.red('Are you absolutely sure?\n') +
+      chalk.dim('  This will permanently delete all webserver data\n') +
+      chalk.dim('  (Apache, MariaDB, PHP, phpMyAdmin, Composer) and cannot be undone.\n'),
+    default: false,
+  }]);
+  if (!confirm) {
+    console.log(chalk.dim('\n  Abort.\n'));
+    return;
   }
+
+  await doStop();
+
+  await withSpinner('Removing SSL certificates...', () => {
+    const cert = PREFIX + '/etc/apache2/server.crt';
+    const key = PREFIX + '/etc/apache2/server.key';
+    try { rmSync(cert, { force: true }); } catch {}
+    try { rmSync(key, { force: true }); } catch {}
+    try { rmSync(MYSQL_PID_FILE, { force: true }); } catch {}
+    return true;
+  });
+
+  await withSpinner('Uninstalling packages...', () => {
+    execSync('apt purge apache2 php php-apache openssl-tool mariadb composer -y', { stdio: 'pipe' });
+    execSync('apt autoremove -y', { stdio: 'pipe' });
+    return true;
+  });
+
+  await withSpinner('Cleaning up files...', () => {
+    rmSync(HTDOCS_DIR + '/phpmyadmin', { recursive: true, force: true });
+    rmSync(PREFIX + '/etc/apache2/httpd.conf', { force: true });
+    rmSync(PREFIX + '/etc/apache2/extra/httpd-ssl.conf', { force: true });
+    rmSync(PREFIX + '/etc/php/php.ini', { force: true });
+    rmSync(DDS_DIR, { recursive: true, force: true });
+    rmSync(PREFIX + '/bin/dds', { force: true });
+    return true;
+  });
+
+  console.log(chalk.green('\n  DDS has been successfully uninstalled.\n'));
+  process.exit(0);
+}
 }
 
 function reloadApache() {

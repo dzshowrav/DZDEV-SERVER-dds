@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { renderLogo, renderBadge } from './logo.js';
 import { showMenu } from './menu.js';
-import { doStart, doStop, doStatus, doRestart, doUpdate, doRoot, doHostManager } from './commands.js';
+import { doStart, doStop, doStatus, doRestart, doUpdate, doUninstall, doRoot, doHostManager } from './commands.js';
 
 const args = process.argv.slice(2);
 
@@ -36,17 +36,7 @@ async function main() {
       case 'hosts':    await doHostManager(); break;
       case 'root':     await doRoot(); break;
       case 'uninstall':
-        const { confirm } = await inquirer.prompt([{
-          type: 'confirm',
-          name: 'confirm',
-          message: chalk.red('Are you sure you want to uninstall DDS?'),
-          default: false,
-        }]);
-        if (confirm) {
-          await doStop();
-          console.log(chalk.dim('  Uninstalling packages...'));
-          process.exit(0);
-        }
+        await doUninstall();
         break;
       case 'exit':
         running = false;
@@ -65,6 +55,7 @@ function runDirect(cmd) {
     case 'restart':    return doRestart();
     case 'status':     return doStatus();
     case 'update':     doUpdate(); break;
+    case 'uninstall':  return doUninstall();
     case 'hosts':      return doHostManager();
     case 'root':       return doRoot();
     case 'help':
