@@ -155,10 +155,15 @@ export async function doStatus() {
     const hosts = getHosts();
     if (hosts.length > 0) {
       console.log(chalk.dim('  ── Virtual Hosts ──'));
+      let sslCount = 0;
       for (const h of hosts) {
         const icon = apacheOnline ? chalk.green('●') : chalk.dim('○');
         const root = h.root || '(none)';
+        if (h.name !== 'default') sslCount++;
+        const sslPort = h.name === 'default' ? '8443' : String(8443 + sslCount);
         console.log(`  ${icon} ${chalk.bold(h.name)} ${chalk.dim('→')} :${h.port} ${chalk.dim('[' + root + ']')}`);
+        console.log(`    ${chalk.dim('HTTP  http://localhost:')}${h.port}${chalk.dim('/')}`);
+        console.log(`    ${chalk.dim('HTTPS https://localhost:')}${sslPort}${chalk.dim('/')}`);
       }
       console.log();
     }
@@ -171,9 +176,12 @@ export async function doStatus() {
     if (apacheOnline) {
       choices.push({ name: `${chalk.green('○')}  ${chalk.bold('Open HTTP')}      ${chalk.dim('http://localhost:' + APACHE_PORT + '/')}`, value: 'http' });
       choices.push({ name: `${chalk.green('○')}  ${chalk.bold('Open HTTPS')}     ${chalk.dim('https://localhost:' + APACHE_SSL_PORT + '/')}`, value: 'https' });
+      let sslCount = 0;
       for (const h of hosts) {
         if (h.port == APACHE_PORT) continue;
-        choices.push({ name: `${chalk.hex('#5599ff')('○')}  ${chalk.bold(h.name)}     ${chalk.dim('http://localhost:' + h.port + '/')}`, value: 'host_' + h.port });
+        if (h.name !== 'default') sslCount++;
+        const sslPort = h.name === 'default' ? APACHE_SSL_PORT : 8443 + sslCount;
+        choices.push({ name: `${chalk.hex('#5599ff')('○')}  ${chalk.bold(h.name)}     ${chalk.dim('http://localhost:' + h.port + '/  https://localhost:' + sslPort + '/')}`, value: 'host_' + h.port });
       }
     }
     choices.push(new inquirer.Separator());
