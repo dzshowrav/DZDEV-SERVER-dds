@@ -10,6 +10,14 @@ DDS (Termux, Apache, MariaDB, PHP) — a full LAMP-like local web server for And
 
 Includes Apache httpd, MariaDB, PHP, phpMyAdmin, Composer, and a visual CLI interface for managing everything.
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/dzshowrav/DZDEV-SERVER-dds/main/assets/Screenshot_20260722-184210.jpg" width="180" alt="Screenshot">
+  <img src="https://raw.githubusercontent.com/dzshowrav/DZDEV-SERVER-dds/main/assets/Screenshot_20260722-185815.jpg" width="180" alt="Screenshot">
+  <img src="https://raw.githubusercontent.com/dzshowrav/DZDEV-SERVER-dds/main/assets/Screenshot_20260722-185836.jpg" width="180" alt="Screenshot">
+  <img src="https://raw.githubusercontent.com/dzshowrav/DZDEV-SERVER-dds/main/assets/Screenshot_20260722-185849.jpg" width="180" alt="Screenshot">
+  <img src="https://raw.githubusercontent.com/dzshowrav/DZDEV-SERVER-dds/main/assets/Screenshot_20260722-185906.jpg" width="180" alt="Screenshot">
+</p>
+
 ## Requirements
 
 - [Termux](https://github.com/termux/termux-app/releases/latest) **v0.118.0** or higher
