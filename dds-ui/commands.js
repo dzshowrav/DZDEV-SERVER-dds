@@ -1,9 +1,11 @@
 import { execSync } from 'child_process';
-import { existsSync } from 'fs';
+import { existsSync, mkdirSync } from 'fs';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { withSpinner } from './spinner.js';
 import { renderLogo, renderHeader } from './logo.js';
+import { getHosts, addHost, removeHost, editHost, setDefaultRoot, loadHosts, saveHosts } from './hosts.js';
+import { generateVhostConfig, getDefaultPort } from './vhost.js';
 
 const DDS_DIR = process.env.HOME + '/dds';
 const MYSQL_PID_FILE = '/data/data/com.termux/files/usr/var/run/mariadb.pid';
@@ -187,6 +189,233 @@ export function doUpdate() {
       execSync(`bash ${DDS_DIR}/update`, { stdio: 'inherit' });
       return true;
     });
-    console.log(chalk.green('  ✓ DDS updated successfully\n'));
+    console.log(chalk.green('  DDS updated successfully\n'));
+  }
+}
+
+function reloadApache() {
+  try {
+    execSync('apachectl -k graceful 2>/dev/null', { stdio: 'ignore' });
+  } catch {
+    try { execSync('apachectl restart 2>/dev/null', { stdio: 'ignore' }); } catch {}
+  }
+}
+
+export async function doRoot() {
+  const data = loadHosts();
+  const { newRoot } = await inquirer.prompt([{
+    type: 'input',
+    name: 'newRoot',
+    message: 'Enter new document root path:',
+    default: data.defaultRoot,
+    validate: v => v.trim() ? true : 'Path cannot be empty',
+  }]);
+
+  newRoot.trim();
+  if (!existsSync(newRoot)) {
+    mkdirSync(newRoot, { recursive: true });
+  }
+  setDefaultRoot(newRoot);
+  generateVhostConfig();
+  reloadApache();
+  console.log(chalk.green('\n  Document root changed to: ' + newRoot + '\n'));
+}
+
+export async function doHostManager() {
+  let back = false;
+  while (!back) {
+    console.clear();
+    const { logo } = renderLogo();
+    console.log(logo);
+    renderHeader('Host Manager');
+
+    const hosts = getHosts();
+    console.log('  ' + chalk.bold('Current Hosts:'));
+    console.log();
+    for (const h of hosts) {
+      const active = chalk.hex('#00d4aa')('>');
+      console.log('    ' + active + '  ' + chalk.bold(h.name) + chalk.dim('  :' + h.port + '  ') + h.root);
+    }
+    console.log();
+
+    const { action } = await inquirer.prompt([{
+      type: 'list',
+      name: 'action',
+      message: 'Host Manager:',
+      choices: [
+        { name: '+  Create Host', value: 'create' },
+        { name: '~  Edit Host', value: 'edit' },
+        { name: '-  Delete Host', value: 'delete' },
+        new inquirer.Separator(),
+        { name: '   Back to Home', value: 'back' },
+      ],
+      pageSize: 8,
+      loop: false,
+    }]);
+
+    switch (action) {
+      case 'create':
+        await doHostCreate();
+        break;
+      case 'edit':
+        await doHostEdit();
+        break;
+      case 'delete':
+        await doHostDelete();
+        break;
+      case 'back':
+        back = true;
+        break;
+    }
+  }
+}
+
+async function doHostCreate() {
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'name',
+      message: 'Host name:',
+      validate: v => /^[a-zA-Z0-9_-]+$/.test(v) ? true : 'Use only letters, numbers, hyphens, underscores',
+    },
+    {
+      type: 'input',
+      name: 'port',
+      message: 'Port number:',
+      default: () => {
+        const hosts = getHosts();
+        const used = new Set(hosts.map(h => h.port));
+        for (let p = 8081; p < 9000; p++) {
+          if (!used.has(p)) return p;
+        }
+        return 8081;
+      },
+      validate: v => {
+        const n = parseInt(v);
+        if (isNaN(n) || n < 1024 || n > 65535) return 'Use a port between 1024 and 65535';
+        const hosts = getHosts();
+        if (hosts.find(h => h.port === n)) return 'Port ' + n + ' is already in use';
+        return true;
+      },
+    },
+    {
+      type: 'input',
+      name: 'root',
+      message: 'Document root path:',
+      default: '/sdcard/htdocs/' + '{name}',
+      filter: v => v.replace('{name}', v === '/sdcard/htdocs/{name}' ? '' : ''),
+      validate: v => v.trim() ? true : 'Path cannot be empty',
+    },
+  ]);
+
+  answers.root.trim();
+  if (!existsSync(answers.root)) {
+    mkdirSync(answers.root, { recursive: true });
+    console.log(chalk.dim('  Created directory: ' + answers.root));
+  }
+
+  try {
+    addHost(answers.name, parseInt(answers.port), answers.root);
+    generateVhostConfig();
+    reloadApache();
+    console.log(chalk.green('\n  Host "' + answers.name + '" created on port ' + answers.port + '\n'));
+  } catch (err) {
+    console.log(chalk.red('\n  ' + err.message + '\n'));
+  }
+}
+
+async function doHostEdit() {
+  const hosts = getHosts();
+  if (hosts.length <= 1) {
+    console.log(chalk.yellow('\n  No extra hosts to edit.\n'));
+    return;
+  }
+
+  const { name } = await inquirer.prompt([{
+    type: 'list',
+    name: 'name',
+    message: 'Select host to edit:',
+    choices: hosts.map(h => ({ name: h.name + '  :' + h.port + '  ' + h.root, value: h.name })),
+  }]);
+
+  const host = hosts.find(h => h.name === name);
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'port',
+      message: 'New port (leave empty to keep ' + host.port + '):',
+      default: host.port,
+      validate: v => {
+        if (!v.trim()) return true;
+        const n = parseInt(v);
+        if (isNaN(n) || n < 1024 || n > 65535) return 'Use a port between 1024 and 65535';
+        return true;
+      },
+    },
+    {
+      type: 'input',
+      name: 'root',
+      message: 'New root path (leave empty to keep ' + host.root + '):',
+      default: host.root,
+      validate: v => v.trim() ? true : 'Path cannot be empty',
+    },
+  ]);
+
+  const updates = {};
+  if (answers.port && parseInt(answers.port) !== host.port) updates.port = parseInt(answers.port);
+  if (answers.root && answers.root !== host.root) updates.root = answers.root;
+
+  if (Object.keys(updates).length === 0) {
+    console.log(chalk.yellow('\n  No changes made.\n'));
+    return;
+  }
+
+  try {
+    editHost(name, updates);
+    generateVhostConfig();
+    reloadApache();
+    console.log(chalk.green('\n  Host "' + name + '" updated.\n'));
+  } catch (err) {
+    console.log(chalk.red('\n  ' + err.message + '\n'));
+  }
+}
+
+async function doHostDelete() {
+  const hosts = getHosts();
+  if (hosts.length <= 1) {
+    console.log(chalk.yellow('\n  No extra hosts to delete.\n'));
+    return;
+  }
+
+  const { name, confirm } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'name',
+      message: 'Select host to delete:',
+      choices: hosts.filter(h => h.name !== 'default').map(h => ({
+        name: h.name + '  :' + h.port + '  ' + h.root,
+        value: h.name,
+      })),
+    },
+    {
+      type: 'confirm',
+      name: 'confirm',
+      message: 'Delete this host?',
+      default: false,
+    },
+  ]);
+
+  if (!confirm) {
+    console.log(chalk.dim('\n  Cancelled.\n'));
+    return;
+  }
+
+  try {
+    removeHost(name);
+    generateVhostConfig();
+    reloadApache();
+    console.log(chalk.green('\n  Host "' + name + '" deleted.\n'));
+  } catch (err) {
+    console.log(chalk.red('\n  ' + err.message + '\n'));
   }
 }

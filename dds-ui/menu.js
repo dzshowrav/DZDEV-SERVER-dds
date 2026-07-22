@@ -39,6 +39,17 @@ const choices = [
   },
   new inquirer.Separator(),
   {
+    name: `${chalk.hex('#d4a000')('●')}  ${chalk.bold('Host Manager')} ${chalk.dim('Create / edit / delete hosts')}`,
+    value: 'hosts',
+    short: 'Hosts',
+  },
+  {
+    name: `${chalk.hex('#d4a000')('●')}  ${chalk.bold('Change Root')}  ${chalk.dim('Set default document root')}`,
+    value: 'root',
+    short: 'Root',
+  },
+  new inquirer.Separator(),
+  {
     name: `${chalk.dim('✕')}  Exit`,
     value: 'exit',
     short: 'Exit',

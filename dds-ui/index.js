@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { renderLogo, renderBadge } from './logo.js';
 import { showMenu } from './menu.js';
-import { doStart, doStop, doStatus, doRestart, doUpdate } from './commands.js';
+import { doStart, doStop, doStatus, doRestart, doUpdate, doRoot, doHostManager } from './commands.js';
 
 const args = process.argv.slice(2);
 
@@ -33,6 +33,8 @@ async function main() {
       case 'restart':  await doRestart(); break;
       case 'status':   await doStatus(); break;
       case 'update':   doUpdate(); break;
+      case 'hosts':    await doHostManager(); break;
+      case 'root':     await doRoot(); break;
       case 'uninstall':
         const { confirm } = await inquirer.prompt([{
           type: 'confirm',
@@ -62,6 +64,8 @@ function runDirect(cmd) {
     case 'restart':    return doRestart();
     case 'status':     return doStatus();
     case 'update':     doUpdate(); break;
+    case 'hosts':      return doHostManager();
+    case 'root':       return doRoot();
     case 'help':
       console.log(chalk.dim('  Usage: dds [command]'));
       console.log(chalk.dim('  Commands:'));
