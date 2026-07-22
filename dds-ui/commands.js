@@ -181,7 +181,8 @@ export async function doStatus() {
         if (h.port == APACHE_PORT) continue;
         if (h.name !== 'default') sslCount++;
         const sslPort = h.name === 'default' ? APACHE_SSL_PORT : 8443 + sslCount;
-        choices.push({ name: `${chalk.hex('#5599ff')('○')}  ${chalk.bold(h.name)}     ${chalk.dim('http://localhost:' + h.port + '/  https://localhost:' + sslPort + '/')}`, value: 'host_' + h.port });
+        choices.push({ name: `${chalk.hex('#5599ff')('○')}  ${chalk.bold(h.name)} HTTP  ${chalk.dim('http://localhost:' + h.port + '/')}`, value: 'host_' + h.port });
+        choices.push({ name: `${chalk.hex('#aa66ff')('○')}  ${chalk.bold(h.name)} HTTPS ${chalk.dim('https://localhost:' + sslPort + '/')}`, value: 'host_ssl_' + sslPort });
       }
     }
     choices.push(new inquirer.Separator());
@@ -207,7 +208,10 @@ export async function doStatus() {
         execSync(`termux-open-url "http://localhost:${APACHE_PORT}/phpmyadmin/"`, { stdio: 'ignore' });
         break;
       default:
-        if (action && action.startsWith('host_')) {
+        if (action && action.startsWith('host_ssl_')) {
+          const port = action.slice(9);
+          execSync(`termux-open-url "https://localhost:${port}/"`, { stdio: 'ignore' });
+        } else if (action && action.startsWith('host_')) {
           const port = action.slice(5);
           execSync(`termux-open-url "http://localhost:${port}/"`, { stdio: 'ignore' });
         }
