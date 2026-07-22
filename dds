@@ -191,14 +191,20 @@ uninstall)
   echo "  Are you absolutely sure?"
   echo ""
   echo "  This action will permanently delete all webserver data"
-  echo "  (Apache, MySQL/MariaDB, PHP, Composer) and cannot be undone."
+  echo "  (Apache, MySQL/MariaDB, PHP, phpMyAdmin, Composer) and cannot be undone."
   echo ""
   read -p "  Do you want to continue? (y/N) " REPLY
   if [ "$REPLY" = "y" ] || [ "$REPLY" = "Y" ]; then
     "$0" stop 2>/dev/null
+    CERT="$PREFIX/etc/apache2/server.crt"
+    KEY="$PREFIX/etc/apache2/server.key"
     rm -f "$CERT" "$KEY" "$MYSQL_PID_FILE"
-    apt purge apache2 php openssl-tool mariadb -y
+    apt purge apache2 php php-apache openssl-tool mariadb composer -y
     apt autoremove -y
+    rm -rf "$HTDOCS_DIR/phpmyadmin" \
+      "$PREFIX/etc/apache2/httpd.conf" \
+      "$PREFIX/etc/apache2/extra/httpd-ssl.conf" \
+      "$PREFIX/etc/php/php.ini"
     cd "$HOME" && rm -rf dds "$PREFIX/bin/dds"
     echo "DDS has been successfully uninstalled."
   else
