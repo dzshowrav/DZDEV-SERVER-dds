@@ -4,9 +4,27 @@ import { getHosts } from './hosts.js';
 const PREFIX = '/data/data/com.termux/files/usr';
 const VHOST_FILE = PREFIX + '/etc/apache2/conf.d/dds-vhosts.conf';
 
+function existingPorts() {
+  const confs = [
+    PREFIX + '/etc/apache2/httpd.conf',
+    PREFIX + '/etc/apache2/extra/httpd-ssl.conf',
+    PREFIX + '/etc/apache2/conf.d/dds-vhosts.conf',
+  ];
+  const ports = new Set();
+  for (const f of confs) {
+    if (!existsSync(f)) continue;
+    const content = readFileSync(f, 'utf8');
+    for (const line of content.split('\n')) {
+      const m = line.match(/^\s*Listen\s+(\d+)/i);
+      if (m) ports.add(parseInt(m[1]));
+    }
+  }
+  return ports;
+}
+
 export function generateVhostConfig() {
   const hosts = getHosts();
-  const listens = new Set();
+  const existing = existingPorts();
   const blocks = [];
 
   blocks.push('# DDS Virtual Hosts -- auto-generated, do not edit manually');
@@ -14,10 +32,9 @@ export function generateVhostConfig() {
   blocks.push('');
 
   for (const host of hosts) {
-    const port = host.port;
-    if (!listens.has(port)) {
-      listens.add(port);
-      blocks.push('Listen ' + port);
+    if (!existing.has(host.port)) {
+      existing.add(host.port);
+      blocks.push('Listen ' + host.port);
     }
   }
 

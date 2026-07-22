@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { existsSync, mkdirSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, rmSync } from 'fs';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { withSpinner } from './spinner.js';
@@ -33,15 +33,32 @@ function mysqlRunning() {
   catch { return false; }
 }
 
+function apacheRunning() {
+  try { return execSync('pgrep httpd', { encoding: 'utf8' }).trim().length > 0; }
+  catch { return false; }
+}
+
 export async function doStart(ssl = false) {
   execSync(`mkdir -p ${HTDOCS_DIR}`, { stdio: 'ignore' });
 
   await withSpinner('Starting Apache...', () => {
-    execSync('apachectl start 2>/dev/null', { stdio: 'ignore' });
+    if (apacheRunning()) return true;
+    try {
+      const runDir = PREFIX + '/var/run/apache2';
+      if (existsSync(runDir)) {
+        for (const f of readdirSync(runDir)) rmSync(runDir + '/' + f, { force: true });
+      }
+    } catch {}
+    try {
+      execSync('apachectl start 2>/dev/null', { stdio: 'ignore', timeout: 10000 });
+    } catch {
+      if (!apacheRunning()) throw new Error('Apache failed to start');
+    }
     return true;
   });
 
   await withSpinner('Starting MariaDB...', () => {
+    if (mysqlRunning()) return true;
     execSync(`mariadbd-safe --pid-file="${MYSQL_PID_FILE}" &`, { stdio: 'ignore' });
     return new Promise(resolve => {
       let tries = 0;
