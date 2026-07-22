@@ -44,7 +44,6 @@ export function renderBadge(frame) {
 }
 
 export function renderLogo() {
-  const w = getWidth();
   const lines = [
     chalk.hex('#00d4aa')('██████╗ ██████╗ ███████╗'),
     chalk.hex('#00c4a0')('██╔══██╗██╔══██╗██╔════╝'),
@@ -55,18 +54,16 @@ export function renderLogo() {
     chalk.hex('#00746e')('═══════════════════════════'),
   ];
 
-  const logo = '\n' + lines.map(l => centerPad(l, w)).join('\n') + '\n';
+  const logo = '\n' + lines.map(l => '  ' + l).join('\n') + '\n';
 
-  const tagline = centerPad(
-    chalk.dim('Termux • Apache • MariaDB • PHP') + '  ' + chalk.hex('#00d4aa')('█'),
-    w,
-  );
+  const tagline = '  ' + chalk.dim('Termux • Apache • MariaDB • PHP') + '  ' + chalk.hex('#00d4aa')('█');
 
   return { logo, tagline };
 }
 
 export function centerPad(str, width) {
   const visible = str.replace(/\u001b\[[0-9;]*m/g, '');
+  if (visible.length <= 0) return str;
   const pad = Math.max(0, Math.floor((width - visible.length) / 2));
   return ' '.repeat(pad) + str;
 }
