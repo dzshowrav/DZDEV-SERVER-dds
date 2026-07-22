@@ -9,18 +9,18 @@ import { doStart, doStop, doStatus, doRestart, doUpdate } from './commands.js';
 const args = process.argv.slice(2);
 
 async function main() {
-  const { logo, tagline } = renderLogo();
-  console.clear();
-  console.log(logo);
-  console.log(tagline);
-  console.log();
-
   if (args.length > 0) {
     return runDirect(args[0]);
   }
 
   let running = true;
   while (running) {
+    console.clear();
+    const { logo, tagline } = renderLogo();
+    console.log(logo);
+    console.log(tagline);
+    console.log();
+
     const action = await showMenu();
 
     switch (action) {

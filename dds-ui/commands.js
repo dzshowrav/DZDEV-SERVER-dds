@@ -3,7 +3,7 @@ import { existsSync } from 'fs';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { withSpinner } from './spinner.js';
-import { renderHeader } from './logo.js';
+import { renderLogo, renderHeader } from './logo.js';
 
 const DDS_DIR = process.env.HOME + '/dds';
 const MYSQL_PID_FILE = '/data/data/com.termux/files/usr/var/run/mariadb.pid';
@@ -81,16 +81,19 @@ export async function doStop() {
 }
 
 export async function doStatus() {
-  const apachePidList = apachePids();
-  const mysqlPidVal = mysqlPid();
-  const mysqlIsRunning = mysqlRunning();
-  const pmaInstalled = existsSync(`${HTDOCS_DIR}/phpmyadmin/index.php`);
-  const apacheOnline = apachePidList.length > 0;
-
-  renderHeader('DDS Status');
-
   let back = false;
   while (!back) {
+    console.clear();
+
+    const { logo } = renderLogo();
+    console.log(logo);
+    renderHeader('DDS Status');
+
+    const apachePidList = apachePids();
+    const mysqlPidVal = mysqlPid();
+    const mysqlIsRunning = mysqlRunning();
+    const pmaInstalled = existsSync(`${HTDOCS_DIR}/phpmyadmin/index.php`);
+    const apacheOnline = apachePidList.length > 0;
 
     const apacheStatus = apacheOnline
       ? chalk.bold.green('● RUNNING') + chalk.dim(`  (${apachePidList.length} processes, port ${APACHE_PORT})`)
