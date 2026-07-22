@@ -165,6 +165,9 @@ export async function doStatus() {
 
     const choices = [];
 
+    if (pmaInstalled && apacheOnline) {
+      choices.push({ name: `${chalk.green('○')}  ${chalk.bold('Open phpMyAdmin')} ${chalk.dim('http://localhost:' + APACHE_PORT + '/phpmyadmin/')}`, value: 'pma' });
+    }
     if (apacheOnline) {
       choices.push({ name: `${chalk.green('○')}  ${chalk.bold('Open HTTP')}      ${chalk.dim('http://localhost:' + APACHE_PORT + '/')}`, value: 'http' });
       choices.push({ name: `${chalk.green('○')}  ${chalk.bold('Open HTTPS')}     ${chalk.dim('https://localhost:' + APACHE_SSL_PORT + '/')}`, value: 'https' });
@@ -172,9 +175,6 @@ export async function doStatus() {
         if (h.port == APACHE_PORT) continue;
         choices.push({ name: `${chalk.hex('#5599ff')('○')}  ${chalk.bold(h.name)}     ${chalk.dim('http://localhost:' + h.port + '/')}`, value: 'host_' + h.port });
       }
-    }
-    if (pmaInstalled && apacheOnline) {
-      choices.push({ name: `${chalk.green('○')}  ${chalk.bold('Open phpMyAdmin')} ${chalk.dim('http://localhost:' + APACHE_PORT + '/phpmyadmin/')}`, value: 'pma' });
     }
     choices.push(new inquirer.Separator());
     choices.push({ name: `${chalk.dim('←')}  ${chalk.bold('Back to Home')}`, value: 'back' });
