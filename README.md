@@ -2,6 +2,10 @@
 
 [![GitHub repo size](https://img.shields.io/github/repo-size/dzshowrav/DZDEV-SERVER-dds?label=Size)](https://github.com/dzshowrav/DZDEV-SERVER-dds) [![GitHub License](https://img.shields.io/github/license/dzshowrav/DZDEV-SERVER-dds?label=License)](https://github.com/dzshowrav/DZDEV-SERVER-dds/blob/main/LICENSE)
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/dzshowrav/DZDEV-SERVER-dds/main/assets/screenshot.jpg" alt="DDS Screenshot" width="600">
+</p>
+
 DDS (Termux, Apache, MariaDB, PHP) — a full LAMP-like local web server for Android, powered by Termux.
 
 Includes Apache httpd, MariaDB, PHP, phpMyAdmin, Composer, and a visual CLI interface for managing everything.
