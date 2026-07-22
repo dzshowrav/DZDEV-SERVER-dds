@@ -32,15 +32,14 @@ export function renderBadge(frame) {
     return '\n' + centerPad(txt, w);
   }
 
-  const dotColor = apache && mysql ? pulse[frame % pulse.length] : '#ff8800';
-  const dot = chalk.hex(dotColor)('●');
+  if (!mysql) {
+    const txt = chalk.yellow('●') + '  ' + chalk.bold.yellow('DEGRADED') + chalk.dim('  Apache only (MariaDB down)');
+    return '\n' + centerPad(txt, w);
+  }
+
+  const dot = chalk.hex(pulse[frame % pulse.length])('●');
   const spin = chalk.hex('#00d4aa')(spinners[frame % spinners.length]);
-
-  let services = [];
-  if (apache) services.push(chalk.green('Apache'));
-  if (mysql) services.push(chalk.green('MariaDB'));
-
-  const txt = `${dot}  ${chalk.bold('ACTIVE')} ${chalk.dim('·')} ${services.join(chalk.dim(' + '))} ${chalk.dim('·')} ${spin}`;
+  const txt = `${dot}  ${chalk.bold('ACTIVE')} ${chalk.dim('·')} ${chalk.green('Apache')} ${chalk.dim('+')} ${chalk.green('MariaDB')} ${chalk.dim('·')} ${spin}`;
   return '\n' + centerPad(txt, w);
 }
 

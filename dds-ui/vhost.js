@@ -8,7 +8,6 @@ function existingPorts() {
   const confs = [
     PREFIX + '/etc/apache2/httpd.conf',
     PREFIX + '/etc/apache2/extra/httpd-ssl.conf',
-    PREFIX + '/etc/apache2/conf.d/dds-vhosts.conf',
   ];
   const ports = new Set();
   for (const f of confs) {
@@ -45,7 +44,7 @@ export function generateVhostConfig() {
     const serverName = host.name === 'default' ? 'localhost' : host.name + '.localhost';
     const root = host.root;
 
-    blocks.push('<VirtualHost _default_:' + port + '>');
+    blocks.push('<VirtualHost *:' + port + '>');
     blocks.push('    DocumentRoot "' + root + '"');
     blocks.push('    ServerName ' + serverName);
     blocks.push('');
