@@ -338,31 +338,6 @@ dds uninstall
 
 or from the menu. Removes Apache, MariaDB, PHP, phpMyAdmin, Composer, and all DDS files. Confirmation required.
 
-## File Structure
-
-```
-~/dds/
-├── dds                  # CLI entry point (bash, delegates to Node.js)
-├── setup                # One-shot installer
-├── update               # Config re-apply after git pull
-├── httpd.conf           # Apache configuration (port 8080)
-├── httpd-ssl.conf       # Apache SSL configuration (port 8443)
-├── config.inc.php       # phpMyAdmin configuration template
-├── .htaccess            # Directory index preference
-├── hosts.json           # Virtual host definitions
-├── assets/              # Screenshots and media
-├── dds-ui/              # Visual CLI interface (Node.js)
-│   ├── index.js         # Entry point, menu loop, direct commands
-│   ├── menu.js          # Interactive menu definitions
-│   ├── logo.js          # ASCII logo + animated status badge
-│   ├── commands.js      # All command implementations
-│   ├── hosts.js         # Host data layer (JSON CRUD)
-│   ├── vhost.js         # Apache vhost config generator
-│   ├── spinner.js       # Spinner utilities
-│   └── package.json     # Dependencies (chalk, ora, inquirer)
-└── LICENSE              # GPL v3
-```
-
 ## Troubleshooting
 
 | Problem | Solution |
