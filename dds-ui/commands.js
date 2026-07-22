@@ -60,10 +60,26 @@ export async function doStart(ssl = false) {
   execSync(`termux-open-url "${proto}://localhost:${port}/"`, { stdio: 'ignore' });
 }
 
+function waitForStop(check, label) {
+  return new Promise(resolve => {
+    let tries = 0;
+    const iv = setInterval(() => {
+      tries++;
+      if (!check() || tries >= 8) {
+        clearInterval(iv);
+        resolve();
+      }
+    }, 500);
+  });
+}
+
 export async function doStop() {
   await withSpinner('Stopping Apache...', () => {
     try { execSync('apachectl stop 2>/dev/null', { stdio: 'ignore' }); } catch {}
-    return true;
+    return waitForStop(() => {
+      try { return execSync('pgrep httpd', { stdio: 'pipe' }).trim().length === 0; }
+      catch { return true; }
+    }, 'Apache');
   });
 
   await withSpinner('Stopping MariaDB...', () => {
@@ -74,7 +90,10 @@ export async function doStop() {
     } else {
       try { execSync('pkill mariadb 2>/dev/null', { stdio: 'ignore' }); } catch {}
     }
-    return true;
+    return waitForStop(() => {
+      try { process.kill(parseInt(mysqlPid()), 0); return false; }
+      catch { return true; }
+    }, 'MariaDB');
   });
 
   console.log(chalk.green('\n  ✓ DDS stopped\n'));
