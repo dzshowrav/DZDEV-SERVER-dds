@@ -71,6 +71,11 @@ echo "${RED}Done!${NC}"
 echo "${YELLOW}DDS is up to date.${NC}"
 echo ""
 
+# Regenerate vhost config (ensures fresh Listen/VirtualHost directives)
+if command -v node &>/dev/null && [ -f dds-ui/vhost.js ] && [ -f dds-ui/hosts.js ]; then
+  node --input-type=module -e "import('$HOME/dds/dds-ui/vhost.js').then(m => m.generateVhostConfig())" 2>/dev/null && echo "  Vhost config regenerated" || echo "  Vhost config regeneration skipped"
+fi
+
 # Restart services after update
 echo "${BLUE}Starting services..${NC}"
 apachectl start 2>/dev/null && echo "  Apache started" || echo "  Apache failed to start (run 'dds start' manually)"

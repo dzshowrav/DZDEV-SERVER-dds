@@ -57,6 +57,7 @@ async function main() {
 }
 
 function runDirect(cmd) {
+  cmd = cmd.replace(/^--/, '');
   switch (cmd) {
     case 'start':      return doStart(false);
     case 'start-ssl':  return doStart(true);
