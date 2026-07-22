@@ -284,8 +284,9 @@ export async function doUninstall() {
     rmSync(PREFIX + '/etc/apache2/httpd.conf', { force: true });
     rmSync(PREFIX + '/etc/apache2/extra/httpd-ssl.conf', { force: true });
     rmSync(PREFIX + '/etc/php/php.ini', { force: true });
-    rmSync(DDS_DIR, { recursive: true, force: true });
     rmSync(PREFIX + '/bin/dds', { force: true });
+    try { process.chdir('/tmp'); } catch {}
+    rmSync(DDS_DIR, { recursive: true, force: true });
     return true;
   });
 
