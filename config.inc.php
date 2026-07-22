@@ -13,7 +13,9 @@ declare(strict_types=1);
  * This is needed for cookie based authentication to encrypt the cookie.
  * Needs to be a 32-bytes long string of random bytes. See FAQ 2.10.
  */
-$cfg['blowfish_secret'] = ''; /* YOU MUST FILL IN THIS FOR COOKIE AUTH! */
+if (empty($cfg['blowfish_secret'])) {
+    $cfg['blowfish_secret'] = bin2hex(random_bytes(16));
+}
 
 /**
  * Servers configuration

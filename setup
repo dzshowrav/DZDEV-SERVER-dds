@@ -13,6 +13,40 @@ rm $PREFIX/etc/apache2/httpd.conf
 
 cp httpd.conf $PREFIX/etc/apache2/
 
+# Generate mime.types if missing
+if [ ! -f "$PREFIX/etc/apache2/mime.types" ]; then
+  cat > "$PREFIX/etc/apache2/mime.types" << 'MIMEEOF'
+text/html                                       html htm shtml
+text/css                                        css
+text/javascript                                 js
+application/json                                json
+image/jpeg                                      jpeg jpg jpe
+image/png                                       png
+image/gif                                       gif
+image/svg+xml                                   svg svgz
+image/webp                                      webp
+image/x-icon                                    ico
+image/avif                                      avif
+image/avif-sequence                             avifs
+font/woff                                       woff
+font/woff2                                      woff2
+font/ttf                                        ttf
+font/otf                                        otf
+application/pdf                                 pdf
+application/zip                                 zip
+application/x-gzip                              gz tgz
+application/xml                                 xml
+text/plain                                      txt
+text/markdown                                   md
+audio/mpeg                                      mp3
+audio/ogg                                       ogg
+audio/wav                                       wav
+video/mp4                                       mp4
+video/webm                                      webm
+MIMEEOF
+  echo "Created mime.types: $PREFIX/etc/apache2/mime.types"
+fi
+
 rm $PREFIX/etc/apache2/extra/httpd-ssl.conf
 
 cp httpd-ssl.conf $PREFIX/etc/apache2/extra/
@@ -25,11 +59,11 @@ mv -f server.crt $PREFIX/etc/apache2/
 
 mv -f server.key $PREFIX/etc/apache2/
 
-rm -f $PREFIX/bin/tamp
+rm -f $PREFIX/bin/dds
 
-chmod +x tamp
+chmod +x dds
 
-cp tamp $PREFIX/bin/
+cp dds $PREFIX/bin/
 
 pkg install mariadb composer -y
 
@@ -49,13 +83,39 @@ then
   cd /sdcard/htdocs && composer create-project phpmyadmin/phpmyadmin
 fi
 
-cd ~/tamp && cp -f config.inc.php /sdcard/htdocs/phpmyadmin/config.inc.php
+cd ~/dds && cp -f config.inc.php /sdcard/htdocs/phpmyadmin/config.inc.php
+
+# Generate blowfish_secret for phpMyAdmin
+PHP_PMA_CONFIG="/sdcard/htdocs/phpmyadmin/config.inc.php"
+BLOWFISH_SECRET=$(php -r "echo bin2hex(random_bytes(16));")
+sed -i "s/\\\$cfg\[.blowfish_secret.\].*/\\\$cfg['blowfish_secret'] = '$BLOWFISH_SECRET';/" "$PHP_PMA_CONFIG"
+
+# PHP security hardening
+PHP_INI="$PREFIX/etc/php/php.ini"
+if [ ! -f "$PHP_INI" ]; then
+  cat > "$PHP_INI" << 'PHPEOF'
+[PHP]
+expose_php = Off
+display_errors = Off
+display_startup_errors = Off
+max_execution_time = 30
+max_input_time = 60
+memory_limit = 128M
+post_max_size = 20M
+upload_max_filesize = 20M
+date.timezone = UTC
+disable_functions = exec,passthru,shell_exec,system,proc_open,popen,show_source
+allow_url_fopen = Off
+allow_url_include = Off
+PHPEOF
+  echo "PHP hardened: $PHP_INI"
+fi
 
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
-echo "TAMP installed sucessfully."
+echo "DDS installed successfully."
 echo "/sdcard/htdocs - is your document directory."
 echo "Place your files in /sdcard/htdocs"
-echo -e "Run: ${YELLOW}tamp start${NC}"
+echo -e "Run: ${YELLOW}dds start${NC}"
 
-#tamp-setup
+#dds-setup

@@ -8,7 +8,7 @@ apachectl stop
 
 pgrep mariadb && pkill mariadb
 
-echo "${BLUE}Updating TAMP..${NC}"
+echo "${BLUE}Updating DDS..${NC}"
 
 rm $PREFIX/etc/apache2/httpd.conf
 
@@ -18,17 +18,59 @@ rm $PREFIX/etc/apache2/extra/httpd-ssl.conf
 
 cp httpd-ssl.conf $PREFIX/etc/apache2/extra/
 
-rm $PREFIX/bin/tamp
+# Generate mime.types if missing
+if [ ! -f "$PREFIX/etc/apache2/mime.types" ]; then
+  cat > "$PREFIX/etc/apache2/mime.types" << 'MIMEEOF'
+text/html                                       html htm shtml
+text/css                                        css
+text/javascript                                 js
+application/json                                json
+image/jpeg                                      jpeg jpg jpe
+image/png                                       png
+image/gif                                       gif
+image/svg+xml                                   svg svgz
+image/webp                                      webp
+image/x-icon                                    ico
+image/avif                                      avif
+image/avif-sequence                             avifs
+font/woff                                       woff
+font/woff2                                      woff2
+font/ttf                                        ttf
+font/otf                                        otf
+application/pdf                                 pdf
+application/zip                                 zip
+application/x-gzip                              gz tgz
+application/xml                                 xml
+text/plain                                      txt
+text/markdown                                   md
+audio/mpeg                                      mp3
+audio/ogg                                       ogg
+audio/wav                                       wav
+video/mp4                                       mp4
+video/webm                                      webm
+MIMEEOF
+  echo "Created mime.types: $PREFIX/etc/apache2/mime.types"
+fi
 
-chmod +x tamp
+rm $PREFIX/bin/dds
 
-cp tamp $PREFIX/bin/
+chmod +x dds
+
+cp dds $PREFIX/bin/
 
 cp -n .htaccess /sdcard/htdocs/
 
 cp -n config.inc.php /sdcard/htdocs/phpmyadmin/config.inc.php
 
 echo "${RED}Done!${NC}"
-echo "${YELLOW}TAMP is up to date.${NC}"
+echo "${YELLOW}DDS is up to date.${NC}"
+echo ""
 
-#tamp-update
+# Restart services after update
+echo "${BLUE}Starting services..${NC}"
+apachectl start 2>/dev/null && echo "  Apache started" || echo "  Apache failed to start (run 'dds start' manually)"
+mariadbd-safe --pid-file="/data/data/com.termux/files/usr/var/run/mariadb.pid" &
+sleep 2
+echo "  MariaDB started"
+
+#dds-update
