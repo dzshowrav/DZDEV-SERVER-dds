@@ -2,7 +2,7 @@
 
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { renderLogo } from './logo.js';
+import { renderLogo, renderBadge } from './logo.js';
 import { showMenu } from './menu.js';
 import { doStart, doStop, doStatus, doRestart, doUpdate } from './commands.js';
 
@@ -13,12 +13,15 @@ async function main() {
     return runDirect(args[0]);
   }
 
+  let frame = 0;
   let running = true;
   while (running) {
     console.clear();
     const { logo, tagline } = renderLogo();
     console.log(logo);
     console.log(tagline);
+    const badge = renderBadge(frame++);
+    console.log(badge);
     console.log();
 
     const action = await showMenu();

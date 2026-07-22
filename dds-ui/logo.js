@@ -1,7 +1,47 @@
+import { execSync } from 'child_process';
 import chalk from 'chalk';
 
 function getWidth() {
   return process.stdout.columns || 80;
+}
+
+function apacheRunning() {
+  try { return execSync('pgrep httpd', { encoding: 'utf8' }).trim().length > 0; }
+  catch { return false; }
+}
+
+function mysqlRunning() {
+  try {
+    const pid = execSync('cat /data/data/com.termux/files/usr/var/run/mariadb.pid 2>/dev/null', { encoding: 'utf8' }).trim();
+    if (!pid) return false;
+    process.kill(parseInt(pid), 0);
+    return true;
+  } catch { return false; }
+}
+
+const pulse = ['#00d4aa', '#00c4a0', '#00b496', '#00a48c', '#009482', '#008478', '#00746e', '#008478', '#009482', '#00a48c', '#00b496', '#00c4a0'];
+const spinners = ['◜', '◝', '◞', '◟'];
+
+export function renderBadge(frame) {
+  const apache = apacheRunning();
+  const mysql = mysqlRunning();
+  const w = getWidth();
+
+  if (!apache && !mysql) {
+    const txt = chalk.red('●') + '  ' + chalk.dim('Server Offline');
+    return '\n' + centerPad(txt, w);
+  }
+
+  const dotColor = apache && mysql ? pulse[frame % pulse.length] : '#ff8800';
+  const dot = chalk.hex(dotColor)('●');
+  const spin = chalk.hex('#00d4aa')(spinners[frame % spinners.length]);
+
+  let services = [];
+  if (apache) services.push(chalk.green('Apache'));
+  if (mysql) services.push(chalk.green('MariaDB'));
+
+  const txt = `${dot}  ${chalk.bold('ACTIVE')} ${chalk.dim('·')} ${services.join(chalk.dim(' + '))} ${chalk.dim('·')} ${spin}`;
+  return '\n' + centerPad(txt, w);
 }
 
 export function renderLogo() {
