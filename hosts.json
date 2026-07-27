@@ -1,0 +1,17 @@
+{
+  "defaultRoot": "/sdcard/htdocs",
+  "hosts": [
+    {
+      "name": "default",
+      "port": 8080,
+      "root": "/sdcard/htdocs",
+      "ssl": false
+    },
+    {
+      "name": "FARMART",
+      "port": 8081,
+      "root": "/sdcard/htdocs/FARMART",
+      "ssl": false
+    }
+  ]
+}
