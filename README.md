@@ -288,6 +288,30 @@ To reinstall (if missing):
 cd /sdcard/htdocs && composer create-project phpmyadmin/phpmyadmin
 ```
 
+## MariaDB / Database
+
+MariaDB runs locally with `root` user set to **no password** (`mysql_native_password` with empty string). This works automatically with DDS and phpMyAdmin.
+
+### Connect from CLI
+
+```bash
+mariadb -u root
+```
+
+### Connect from PHP (mysqli)
+
+```php
+$db = new mysqli('localhost', 'root', '', 'database_name');
+```
+
+### Change root password (optional)
+
+```bash
+mariadb -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'yourpass'; FLUSH PRIVILEGES;"
+```
+
+> **Note:** If you set a password, update `~/dds/config.inc.php` by setting `AllowNoPassword` to `false` and adding `$cfg['Servers'][$i]['password'] = 'yourpass';`
+
 ## HTTPS / SSL
 
 DDS generates a self-signed SSL certificate during installation. Start with HTTPS:
