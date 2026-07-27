@@ -67,6 +67,7 @@ start)
     done
     if mysql_running; then
       echo "  MariaDB started (PID $(mysql_pid))"
+      ln -sf "$PREFIX/var/run/mysqld.sock" "$PREFIX/tmp/mysqld.sock" 2>/dev/null
     else
       echo "  WARNING: MariaDB may not have started. Check logs."
     fi
@@ -102,7 +103,10 @@ start-ssl)
       sleep 2
       mysql_running && break
     done
-    mysql_running && echo "  MariaDB started (PID $(mysql_pid))"
+    if mysql_running; then
+      echo "  MariaDB started (PID $(mysql_pid))"
+      ln -sf "$PREFIX/var/run/mysqld.sock" "$PREFIX/tmp/mysqld.sock" 2>/dev/null
+    fi
   fi
   echo "Open browser: https://localhost:$APACHE_SSL_PORT/"
   termux-open-url "https://localhost:$APACHE_SSL_PORT/"

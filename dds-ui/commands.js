@@ -72,6 +72,7 @@ export async function doStart(ssl = false) {
         tries++;
         if (mysqlRunning() || tries >= 5) {
           clearInterval(iv);
+          try { execSync(`ln -sf ${PREFIX}/var/run/mysqld.sock ${PREFIX}/tmp/mysqld.sock`, { stdio: 'ignore' }); } catch {}
           resolve(true);
         }
       }, 1500);
