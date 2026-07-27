@@ -13,7 +13,7 @@ Android local web server provisioning tool (formerly TAMP). Manages a full LAMP-
 | Runtime | Termux / Android |
 | Web Server | Apache httpd (port 8080, SSL on 8443) |
 | Database | MariaDB (MySQL-compatible) |
-| Language | PHP (mod_php), Bash |
+| Language | PHP (FPM via proxy_fcgi), Bash |
 | CLI | Bash scripts (dds, setup, update) |
 | Config | Apache httpd.conf, phpMyAdmin config.inc.php |
 | SSL | OpenSSL self-signed cert |

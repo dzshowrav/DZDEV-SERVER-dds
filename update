@@ -78,6 +78,10 @@ fi
 
 # Restart services after update
 echo "${BLUE}Starting services..${NC}"
+echo "  Starting PHP-FPM.."
+php-fpm --nodaemonize --allow-to-run-as-root &>/dev/null &
+sleep 2
+pgrep php-fpm >/dev/null 2>&1 && echo "  PHP-FPM started" || echo "  WARNING: PHP-FPM may not have started"
 apachectl start 2>/dev/null && echo "  Apache started" || echo "  Apache failed to start (run 'dds start' manually)"
 mariadbd-safe --pid-file="/data/data/com.termux/files/usr/var/run/mariadb.pid" &
 sleep 2

@@ -33,6 +33,31 @@ apache_running() {
   pgrep httpd >/dev/null 2>&1
 }
 
+fpm_running() {
+  pgrep php-fpm >/dev/null 2>&1
+}
+
+fpm_start() {
+  if fpm_running; then
+    echo "  PHP-FPM already running"
+    return
+  fi
+  php-fpm --nodaemonize --allow-to-run-as-root &>/dev/null &
+  sleep 2
+  if fpm_running; then
+    echo "  PHP-FPM started"
+  else
+    echo "  WARNING: PHP-FPM may not have started."
+  fi
+}
+
+fpm_stop() {
+  if fpm_running; then
+    pkill php-fpm 2>/dev/null
+    echo "  PHP-FPM stopped"
+  fi
+}
+
 mysql_pid() {
   if [ -f "$MYSQL_PID_FILE" ]; then
     cat "$MYSQL_PID_FILE"
@@ -48,6 +73,8 @@ mysql_running() {
 case "${1:-help}" in
 start)
   ensure_htdocs
+  echo "Starting PHP-FPM.."
+  fpm_start
   echo "Starting Apache.."
   if apache_running; then
     echo "  Apache already running on port $APACHE_PORT"
@@ -77,6 +104,8 @@ start)
   ;;
 start-ssl)
   ensure_htdocs
+  echo "Starting PHP-FPM.."
+  fpm_start
   CERT="$PREFIX/etc/apache2/server.crt"
   KEY="$PREFIX/etc/apache2/server.key"
   if ! openssl x509 -checkend 86400 -noout -in "$CERT" 2>/dev/null; then
@@ -112,6 +141,8 @@ start-ssl)
   termux-open-url "https://localhost:$APACHE_SSL_PORT/"
   ;;
 stop)
+  echo "Stopping PHP-FPM.."
+  fpm_stop
   echo "Stopping Apache.."
   if apache_running; then
     apachectl stop 2>/dev/null && echo "  Apache stopped" || echo "  Failed to stop Apache"
@@ -138,6 +169,11 @@ restart)
 status)
   echo "=== DDS Status ==="
   echo ""
+  if fpm_running; then
+    echo "  PHP-FPM    RUNNING  ($(pgrep -c php-fpm) processes, socket /var/run/php-fpm.sock)"
+  else
+    echo "  PHP-FPM    STOPPED"
+  fi
   if apache_running; then
     echo "  Apache     RUNNING  ($(pgrep -c httpd) processes, port $APACHE_PORT)"
   else
@@ -203,7 +239,8 @@ uninstall)
     CERT="$PREFIX/etc/apache2/server.crt"
     KEY="$PREFIX/etc/apache2/server.key"
     rm -f "$CERT" "$KEY" "$MYSQL_PID_FILE"
-    apt purge apache2 php php-apache openssl-tool mariadb composer -y
+    fpm_stop
+    apt purge apache2 php php-fpm php-gd openssl-tool mariadb composer -y
     apt autoremove -y
     rm -rf "$HTDOCS_DIR/phpmyadmin" \
       "$PREFIX/etc/apache2/httpd.conf" \
