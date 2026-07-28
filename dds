@@ -25,6 +25,27 @@ die() {
   exit 1
 }
 
+preflight_check() {
+  local missing=false
+  for cmd in apachectl php-fpm mariadbd-safe; do
+    if ! command -v "$cmd" &>/dev/null; then
+      echo "  MISSING: '$cmd' is not installed." >&2
+      missing=true
+    fi
+  done
+  if [ ! -f "$PREFIX/etc/apache2/httpd.conf" ]; then
+    echo "  MISSING: Apache config not found ($PREFIX/etc/apache2/httpd.conf)." >&2
+    missing=true
+  fi
+  if [ ! -f "$PREFIX/etc/apache2/server.crt" ] || [ ! -f "$PREFIX/etc/apache2/server.key" ]; then
+    echo "  MISSING: SSL certificates not found. Run 'bash $DDS_DIR/setup'." >&2
+    missing=true
+  fi
+  if $missing; then
+    die "Preflight check failed. Run 'bash $DDS_DIR/setup' first."
+  fi
+}
+
 ensure_htdocs() {
   [ -d "$HTDOCS_DIR" ] || mkdir -p "$HTDOCS_DIR"
 }
@@ -72,23 +93,35 @@ mysql_running() {
 
 case "${1:-help}" in
 start)
+  preflight_check
   ensure_htdocs
   echo "Starting PHP-FPM.."
   fpm_start
   echo "Starting Apache.."
   if apache_running; then
     echo "  Apache already running on port $APACHE_PORT"
-  elif apachectl start 2>/dev/null; then
+  elif apachectl start >/dev/null 2>&1; then
     echo "  Apache started on port $APACHE_PORT"
   else
-    die "Apache failed to start. Check $PREFIX/var/log/apache2/error_log"
+    apachectl configtest 2>&1
+    die "Apache failed to start."
   fi
   echo "Starting MariaDB.."
   if mysql_running; then
     echo "  MariaDB already running"
   else
+    # Ensure MariaDB skip-networking config exists
+    mkdir -p "$PREFIX/etc/my.cnf.d"
+    if [ ! -f "$PREFIX/etc/my.cnf.d/dds-server.cnf" ]; then
+      cat > "$PREFIX/etc/my.cnf.d/dds-server.cnf" << 'DDSMDB'
+[mariadbd]
+skip-networking
+socket = /data/data/com.termux/files/usr/var/run/mysqld.sock
+pid-file = /data/data/com.termux/files/usr/var/run/mariadb.pid
+DDSMDB
+    fi
     mariadbd-safe --pid-file="$MYSQL_PID_FILE" &
-    for i in 1 2 3 4 5; do
+    for i in 1 2 3 4 5 6 7 8; do
       sleep 2
       mysql_running && break
     done
@@ -103,6 +136,7 @@ start)
   termux-open-url "http://localhost:$APACHE_PORT/"
   ;;
 start-ssl)
+  preflight_check
   ensure_htdocs
   echo "Starting PHP-FPM.."
   fpm_start
@@ -118,17 +152,27 @@ start-ssl)
   fi
   echo "Starting Apache with SSL.."
   if apache_running; then
-    apachectl restart 2>/dev/null || die "Apache restart failed"
+    apachectl restart >/dev/null 2>&1 || die "Apache restart failed"
   else
-    apachectl start 2>/dev/null || die "Apache failed to start"
+    apachectl start >/dev/null 2>&1 || echo "  Apache failed to start (check logs)"
   fi
   echo "  Apache running on ports $APACHE_PORT (HTTP) and $APACHE_SSL_PORT (HTTPS)"
   echo "Starting MariaDB.."
   if mysql_running; then
     echo "  MariaDB already running"
   else
+    # Ensure MariaDB skip-networking config exists
+    mkdir -p "$PREFIX/etc/my.cnf.d"
+    if [ ! -f "$PREFIX/etc/my.cnf.d/dds-server.cnf" ]; then
+      cat > "$PREFIX/etc/my.cnf.d/dds-server.cnf" << 'DDSMDB'
+[mariadbd]
+skip-networking
+socket = /data/data/com.termux/files/usr/var/run/mysqld.sock
+pid-file = /data/data/com.termux/files/usr/var/run/mariadb.pid
+DDSMDB
+    fi
     mariadbd-safe --pid-file="$MYSQL_PID_FILE" &
-    for i in 1 2 3 4 5; do
+    for i in 1 2 3 4 5 6 7 8; do
       sleep 2
       mysql_running && break
     done
@@ -145,7 +189,7 @@ stop)
   fpm_stop
   echo "Stopping Apache.."
   if apache_running; then
-    apachectl stop 2>/dev/null && echo "  Apache stopped" || echo "  Failed to stop Apache"
+    apachectl stop >/dev/null 2>&1 && echo "  Apache stopped" || echo "  Failed to stop Apache"
   else
     echo "  Apache was not running"
   fi

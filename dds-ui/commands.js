@@ -47,6 +47,28 @@ export async function doStart(ssl = false) {
 
   generateVhostConfig();
 
+  await withSpinner('Starting PHP-FPM...', () => {
+    try {
+      execSync('pgrep php-fpm >/dev/null 2>&1', { stdio: 'ignore' });
+      return true;
+    } catch {
+      execSync('php-fpm --nodaemonize --allow-to-run-as-root &>/dev/null &', { stdio: 'ignore' });
+      return new Promise(resolve => {
+        let tries = 0;
+        const iv = setInterval(() => {
+          tries++;
+          try {
+            execSync('pgrep php-fpm >/dev/null 2>&1', { stdio: 'ignore' });
+            clearInterval(iv);
+            resolve(true);
+          } catch {
+            if (tries >= 5) { clearInterval(iv); resolve(true); }
+          }
+        }, 1000);
+      });
+    }
+  });
+
   await withSpinner('Starting Apache...', () => {
     if (apacheRunning()) return true;
     try {
