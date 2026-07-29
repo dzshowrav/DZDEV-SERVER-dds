@@ -6,6 +6,12 @@
       "port": 8080,
       "root": "/sdcard/htdocs",
       "ssl": false
+    },
+    {
+      "name": "liqabook",
+      "port": 8081,
+      "root": "/data/data/com.termux/files/home/liqabook/public",
+      "ssl": false
     }
   ]
 }
